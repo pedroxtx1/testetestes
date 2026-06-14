@@ -341,3 +341,6 @@ const styles = StyleSheet.create({
   avatarBadge: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: 'white', fontSize: 22, fontWeight: 'bold' }
 });
+
+
+//funcionapfvr//
