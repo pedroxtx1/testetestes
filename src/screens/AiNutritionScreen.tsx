@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -9,6 +10,7 @@ import {
   Animated,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
@@ -47,7 +49,7 @@ const ThinkingIndicator = () => {
         <Text style={[estilos.nomeAutor, { color: '#4CAF50' }]}>Fernanda</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Animated.View style={{ transform: [{ rotate: spin }] }}>
-            <Text style={{ fontSize: 20, color: '#4CAF50' }}>●</Text>
+            <ActivityIndicator size="small" color="#4CAF50" />
           </Animated.View>
           <Text style={{ fontSize: 12, color: '#999' }}>Pensando...</Text>
         </View>
@@ -66,23 +68,47 @@ type Sugestao = {
 
 type Mensagem = {
   id: string;
-  autor: 'Agente' | 'Usuário';
+  autor: 'Agente' | 'Usuario';
   texto: string;
   sugestao: Sugestao | null;
 };
 
 
 export const AiScreen = () => {
-  const { healthSummary } = useAppStore();
+  const { healthSummary, userProfile } = useAppStore();
 
   const sessionIdRef = useRef<string | null>(null);
-  if (!sessionIdRef.current) {
-    sessionIdRef.current = `sess_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  }
-  const sessionId = sessionIdRef.current;
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
+  useEffect(() => {
+    let active = true;
 
-  const [pergunta, setPergunta] = useState('');
+    const loadSessionId = async () => {
+      const storedSessionId = await AsyncStorage.getItem('ai_chat_session_id');
+      const nextSessionId = storedSessionId || `sess_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+      if (!storedSessionId) {
+        await AsyncStorage.setItem('ai_chat_session_id', nextSessionId);
+      }
+
+      if (active) {
+        sessionIdRef.current = nextSessionId;
+        setSessionId(nextSessionId);
+      }
+    };
+
+    loadSessionId().catch((error) => {
+      console.log('ERRO SESSION ID:', error);
+      const fallbackSessionId = `sess_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      sessionIdRef.current = fallbackSessionId;
+      setSessionId(fallbackSessionId);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+const [pergunta, setPergunta] = useState('');
 
   const [carregando, setCarregando] = useState(false);
 
@@ -90,7 +116,7 @@ export const AiScreen = () => {
     {
       id: '1',
       autor: 'Agente',
-      texto: `Sou a Fernanda, sua Assistente de Nutrição Virtual. Posso sugerir refeições com base na sua meta diária de ${healthSummary?.calories || 2000} kcal.`,
+      texto: `Sou a Fernanda, sua assistente de nutrição e treino. Posso sugerir refeições e exercícios com base no seu perfil, objetivo e meta diária de ${healthSummary?.calories || 2000} kcal.`,
       sugestao: null,
     },
   ]);
@@ -122,14 +148,16 @@ export const AiScreen = () => {
 
 
   const enviarPergunta = async () => {
-    if (!pergunta.trim()) return;
+    if (!pergunta.trim() || !sessionId) return;
 
     const mensagemDoUsuario: Mensagem = {
       id: Date.now().toString(),
-      autor: 'Usuário',
+      autor: 'Usuario',
       texto: pergunta,
       sugestao: null,
     };
+
+    const historicoAntesDoEnvio = mensagens.slice(-20);
 
     setMensagens(anterior => [...anterior, mensagemDoUsuario]);
     setPergunta('');
@@ -142,10 +170,16 @@ export const AiScreen = () => {
         body: JSON.stringify({
           session_id: sessionId,
           message: mensagemDoUsuario.texto,
+          userProfile,
           profile: {
+            ...userProfile,
             caloriesGoal: healthSummary?.calories || 2000,
           },
           healthSummary,
+          clientHistory: historicoAntesDoEnvio.map((msg) => ({
+            role: msg.autor === 'Usuario' ? 'user' : 'assistant',
+            content: msg.texto,
+          })),
         }),
       });
 
@@ -177,7 +211,7 @@ export const AiScreen = () => {
   };
 
   const renderizarMensagem = ({ item }: { item: Mensagem }) => {
-    const ehDoUsuario = item.autor === 'Usuário';
+    const ehDoUsuario = item.autor === 'Usuario';
     const animValue = messageAnimations[item.id] || new Animated.Value(1);
 
     return (
@@ -261,13 +295,13 @@ export const AiScreen = () => {
           ListHeaderComponent={
             <>
               <GradientHeader
-                title="Fernanda — Assistente de Nutrição Virtual"
-                subtitle="Converse sobre lanches, café da manhã, almoço e jantar com recomendações personalizadas."
+                title="Fernanda - Nutrição e Treino"
+                subtitle="Converse sobre refeições, exercícios, rotina e metas com recomendações personalizadas."
               />
 
               <View style={estilos.indicadorAgente}>
                 <FontAwesome5 name="robot" size={20} color={COLORS.GreenPrimary} solid />
-                <Text style={estilos.textoIndicadorAgente}>Dicas de nutrição personalizadas</Text>
+                <Text style={estilos.textoIndicadorAgente}>Dicas de nutrição e treino personalizadas</Text>
               </View>
 
               <SectionTitle
@@ -433,3 +467,8 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
   },
 })
+
+
+
+
+

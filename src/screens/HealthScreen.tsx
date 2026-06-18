@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -94,7 +94,7 @@ export const HealthScreen = () => {
       const hours = parseFloat((diff / 60).toFixed(1));
       await saveSleep(userId, sleepStart, sleepEnd, hours);
       setSleepDuration(hours);
-      alert('Sono registrado com sucesso! 🌙');
+      alert('Sono registrado com sucesso!');
     } catch (e) {
       alert('Erro ao salvar sono!');
     } finally {
@@ -158,7 +158,7 @@ export const HealthScreen = () => {
                   <View style={[styles.progressBarFill, { width: `${Math.min((consumedMl / (parseInt(waterGoalInput) || 1)) * 100, 100)}%` }]} />
                 </View>
                 <Text style={styles.feedbackText}>
-                  {consumedMl >= parseInt(waterGoalInput) ? '✓ Você bateu a meta diária de água!' : `Faltam ${parseInt(waterGoalInput) - consumedMl} ml`}
+                  {consumedMl >= parseInt(waterGoalInput) ? 'Você bateu a meta diária de água!' : `Faltam ${parseInt(waterGoalInput) - consumedMl} ml`}
                 </Text>
                 <PrimaryButton text="Adicionar 250 ml" onClick={handleAddWater} />
                 {savingWater && (
@@ -202,9 +202,9 @@ export const HealthScreen = () => {
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: `${Math.min((sleepDuration / (parseFloat(sleepGoalInput) || 1)) * 100, 100)}%` }]} />
               </View>
-              {sleepDuration > 0 && <Text style={styles.feedbackText}>✓ Dormiu às {sleepStart} e acordou às {sleepEnd}</Text>}
+              {sleepDuration > 0 && <Text style={styles.feedbackText}>Dormiu às {sleepStart} e acordou às {sleepEnd}</Text>}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <PrimaryButton text="Salvar sono" onClick={handleSaveSleep} />
+                <PrimaryButton text="Salvar sono" onClick={handleSaveSleep} style={styles.saveInlineButton} />
                 {savingSleep && <ActivityIndicator size="small" color={COLORS.GreenPrimary} />}
               </View>
             </PremiumCard>
@@ -231,7 +231,7 @@ export const HealthScreen = () => {
                     <AppInput value={mealTime} onValueChange={setMealTime} label="Horário (HH:MM)" />
                     <AppInput value={mealCalories} onValueChange={setMealCalories} label="Calorias (kcal)" keyboardType="numeric" />
                     <AppInput value={mealDescription} onValueChange={setMealDescription} label="Descrição (opcional)" />
-                    <PrimaryButton text={savingMeal ? "Salvando..." : "Salvar refeição"} onClick={handleAddMeal} />
+                    <PrimaryButton text={savingMeal ? "Salvando..." : "Salvar refeição"} onClick={handleAddMeal} style={styles.saveFullButton} />
                   </View>
                 )}
               </PremiumCard>
@@ -293,4 +293,12 @@ const styles = StyleSheet.create({
   emptyStateText: { fontSize: 16, fontWeight: '600', color: 'black' },
   emptyStateSubtext: { fontSize: 14, color: COLORS.TextVariant },
   resetIconButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(76,175,80,0.08)' },
+  saveInlineButton: { flex: 1, marginTop: 0 },
+  saveFullButton: { width: '100%', flexGrow: 0, flexShrink: 0, marginTop: 0 },
 });
+
+
+
+
+
+

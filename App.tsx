@@ -1,4 +1,4 @@
-import { HealthEngine } from './src/models/Engine';
+﻿import { HealthEngine } from './src/models/Engine';
 import { signInWithGoogle, getProfile, onAuthChange, resetPassword } from './src/services/auth';
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -205,16 +205,41 @@ export default function App() {
   const [enteringFromLogin, setEnteringFromLogin] = useState(false);
 
   useEffect(() => {
-    const buildProfile = (sessionUser: any, profile: any | null): UserProfile => ({
-      name: profile?.name ?? sessionUser?.user_metadata?.name ?? 'Usuário',
-      email: sessionUser?.email ?? '',
-      age: profile?.age ?? sessionUser?.user_metadata?.age ?? 25,
-      sex: profile?.gender ?? sessionUser?.user_metadata?.gender ?? 'Feminino',
-      weightKg: profile?.weight ?? sessionUser?.user_metadata?.weight ?? 70,
-      heightCm: profile?.height ?? sessionUser?.user_metadata?.height ?? 170,
-      goal: profile?.goal ?? sessionUser?.user_metadata?.goal ?? 'Vida saudável',
-      activityLevel: 'Moderado',
-    });
+    const normalizeActivityLevel = (value: any): string => {
+      if (!value) return 'nao_informado';
+
+      const normalized = String(value).trim().toLowerCase();
+      const activityMap: Record<string, string> = {
+        sedentario: 'sedentario',
+        'sedentário': 'sedentario',
+        leve: 'leve',
+        moderado: 'moderado',
+        intenso: 'intenso',
+        muito_intenso: 'muito_intenso',
+        'muito intenso': 'muito_intenso',
+      };
+
+      return activityMap[normalized] || normalized;
+    };
+
+    const buildProfile = (sessionUser: any, profile: any | null): UserProfile => {
+      const activityLevel =
+        profile?.activity_level ??
+        profile?.activityLevel ??
+        sessionUser?.user_metadata?.activityLevel ??
+        sessionUser?.user_metadata?.activity_level;
+
+      return {
+        name: profile?.name ?? sessionUser?.user_metadata?.name ?? 'Usuário',
+        email: sessionUser?.email ?? '',
+        age: profile?.age ?? sessionUser?.user_metadata?.age ?? 25,
+        sex: profile?.gender ?? sessionUser?.user_metadata?.gender ?? 'Feminino',
+        weightKg: profile?.weight ?? sessionUser?.user_metadata?.weight ?? 70,
+        heightCm: profile?.height ?? sessionUser?.user_metadata?.height ?? 170,
+        goal: profile?.goal ?? sessionUser?.user_metadata?.goal ?? 'Vida saudável',
+        activityLevel: normalizeActivityLevel(activityLevel),
+      };
+    };
 
     const syncSession = async (session: any) => {
       if (!session?.user) return;
@@ -336,3 +361,6 @@ const styles = StyleSheet.create({
   avatarBadge: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: 'white', fontSize: 22, fontWeight: 'bold' }
 });
+
+
+

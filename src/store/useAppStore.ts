@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { UserProfile, HealthSummary, HealthEngine } from '../models/Engine';
 import { signIn as supabaseSignIn, getProfile } from '../services/auth';
 import { supabase } from '../services/supabase';
@@ -12,7 +12,30 @@ interface AppState {
   updateProfile: (profile: UserProfile) => void;
 }
 
+function normalizeActivityLevel(value: any): string {
+  if (!value) return 'nao_informado';
+
+  const normalized = String(value).trim().toLowerCase();
+  const activityMap: Record<string, string> = {
+    sedentario: 'sedentario',
+    'sedentário': 'sedentario',
+    leve: 'leve',
+    moderado: 'moderado',
+    intenso: 'intenso',
+    muito_intenso: 'muito_intenso',
+    'muito intenso': 'muito_intenso',
+  };
+
+  return activityMap[normalized] || normalized;
+}
+
 function buildProfile(user: any, profile: any | null): UserProfile {
+  const activityLevel =
+    profile?.activity_level ??
+    profile?.activityLevel ??
+    user?.user_metadata?.activityLevel ??
+    user?.user_metadata?.activity_level;
+
   return {
     name: profile?.name ?? user?.user_metadata?.name ?? 'Usuário',
     email: user?.email ?? '',
@@ -21,7 +44,7 @@ function buildProfile(user: any, profile: any | null): UserProfile {
     weightKg: profile?.weight ?? user?.user_metadata?.weight ?? 70,
     heightCm: profile?.height ?? user?.user_metadata?.height ?? 170,
     goal: profile?.goal ?? user?.user_metadata?.goal ?? 'Vida saudável',
-    activityLevel: profile?.activityLevel ?? 'Moderado',
+    activityLevel: normalizeActivityLevel(activityLevel),
   };
 }
 
@@ -45,7 +68,7 @@ export const useAppStore = create<AppState>((set) => ({
           healthSummary: HealthEngine.calculateSummary(userProfile),
         });
       } catch (err) {
-        console.warn('Não foi possível carregar profile no login, usando metadata:', err);
+        console.warn('NÃ£o foi possÃ­vel carregar profile no login, usando metadata:', err);
         const userProfile = buildProfile(session.user, null);
         set({
           isAuthenticated: true,
@@ -66,3 +89,5 @@ export const useAppStore = create<AppState>((set) => ({
     set({ userProfile: profile, healthSummary: summary });
   },
 }));
+
+

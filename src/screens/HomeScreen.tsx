@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { GradientHeader, PremiumCard, SectionTitle, MetricRow, COLORS, PageSlide } from '../ui/components';
 import { useAppStore } from '../store/useAppStore';
@@ -9,6 +10,7 @@ import { getTodayWater, getTodaySleep } from '../services/health';
 
 export const HomeScreen = () => {
   const { userProfile, healthSummary } = useAppStore();
+  const isFocused = useIsFocused();
 
   const [waterMl, setWaterMl] = useState(0);
   const [sleepHours, setSleepHours] = useState(0);
@@ -20,11 +22,14 @@ export const HomeScreen = () => {
   const caloriesGoal = healthSummary?.calories ?? 2154;
 
   useEffect(() => {
-    loadTodayData();
-  }, []);
+    if (isFocused) {
+      loadTodayData();
+    }
+  }, [isFocused]);
 
   const loadTodayData = async () => {
     try {
+      setLoading(true);
       const { data } = await supabase.auth.getUser();
       if (!data.user) return;
       const uid = data.user.id;
@@ -54,7 +59,7 @@ export const HomeScreen = () => {
     {
       title: "Hidratação",
       value: `${(waterMl / 1000).toFixed(1)} / ${(waterGoalMl / 1000).toFixed(1)} L`,
-      subtitle: waterMl >= waterGoalMl ? '✓ Meta batida!' : `Faltam ${waterGoalMl - waterMl} ml`,
+      subtitle: waterMl >= waterGoalMl ? 'Meta batida!' : `Faltam ${waterGoalMl - waterMl} ml`,
       progress: Math.min(waterMl / waterGoalMl, 1),
       color: '#81C784',
       icon: 'tint'
@@ -62,7 +67,7 @@ export const HomeScreen = () => {
     {
       title: "Sono",
       value: `${sleepHours.toFixed(1)} / ${sleepGoal} h`,
-      subtitle: sleepHours >= sleepGoal ? '✓ Meta batida!' : `Faltam ${(sleepGoal - sleepHours).toFixed(1)} h`,
+      subtitle: sleepHours >= sleepGoal ? 'Meta batida!' : `Faltam ${(sleepGoal - sleepHours).toFixed(1)} h`,
       progress: Math.min(sleepHours / sleepGoal, 1),
       color: '#A5D6A7',
       icon: 'moon'
@@ -70,14 +75,14 @@ export const HomeScreen = () => {
     {
       title: "Calorias",
       value: `${caloriesConsumed} / ${caloriesGoal} kcal`,
-      subtitle: caloriesConsumed >= caloriesGoal ? '✓ Meta batida!' : `Faltam ${caloriesGoal - caloriesConsumed} kcal`,
+      subtitle: caloriesConsumed >= caloriesGoal ? 'Meta batida!' : `Faltam ${caloriesGoal - caloriesConsumed} kcal`,
       progress: Math.min(caloriesConsumed / caloriesGoal, 1),
       color: '#4CAF50',
       icon: 'fire'
     },
     {
       title: "Passos",
-      value: `—`,
+      value: `-`,
       subtitle: `Sensor não disponível`,
       progress: 0,
       color: '#66BB6A',
@@ -118,11 +123,11 @@ export const HomeScreen = () => {
           <PremiumCard>
             <View style={styles.cardContentGap}>
               <SectionTitle title="Resumo corporal" subtitle="Baseado nos seus dados atuais" />
-              <MetricRow label="IMC" value={`${healthSummary?.bmi ?? '—'} (${healthSummary?.bmiLabel ?? '—'})`} />
-              <MetricRow label="Peso ideal" value={`${healthSummary?.idealWeightKg ?? '—'} kg`} />
-              <MetricRow label="Água recomendada" value={`${healthSummary?.waterLiters ?? '—'} L`} />
-              <MetricRow label="Calorias diárias" value={`${healthSummary?.calories ?? '—'} kcal`} />
-              <MetricRow label="Sono recomendado" value={`${healthSummary?.sleepHours ?? '—'} horas`} />
+              <MetricRow label="IMC" value={`${healthSummary?.bmi ?? '-'} (${healthSummary?.bmiLabel ?? '-'})`} />
+              <MetricRow label="Peso ideal" value={`${healthSummary?.idealWeightKg ?? '-'} kg`} />
+              <MetricRow label="Água recomendada" value={`${healthSummary?.waterLiters ?? '-'} L`} />
+              <MetricRow label="Calorias diárias" value={`${healthSummary?.calories ?? '-'} kcal`} />
+              <MetricRow label="Sono recomendado" value={`${healthSummary?.sleepHours ?? '-'} horas`} />
             </View>
           </PremiumCard>
 
@@ -190,3 +195,4 @@ const styles = StyleSheet.create({
   insightDesc: { fontSize: 14, color: COLORS.TextVariant, lineHeight: 20 },
   insightHighlight: { fontSize: 14, fontWeight: '600', color: COLORS.GreenPrimary }
 });
+

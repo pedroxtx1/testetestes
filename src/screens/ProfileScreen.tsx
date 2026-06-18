@@ -1,12 +1,26 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Switch, Alert, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { PremiumCard, PrimaryButton, SecondaryButton, AppInput, MetricRow, SectionTitle, COLORS, PageSlide } from '../ui/components';
+import { PremiumCard, PrimaryButton, SecondaryButton, AppInput, MetricRow, SectionTitle, SelectChip, COLORS, PageSlide } from '../ui/components';
 import { CollapsibleSetting } from '../ui/CollapsibleSetting';
 import { useAppStore } from '../store/useAppStore';
 import { supabase } from '../services/supabase';
+
+const GOAL_OPTIONS = [
+  { label: 'Perder peso', value: 'perda_peso' },
+  { label: 'Ganho de Massa', value: 'ganho_massa' },
+  { label: 'Manutenção', value: 'manutencao' },
+];
+
+const ACTIVITY_LEVEL_OPTIONS = [
+  { label: 'Sedentário', value: 'sedentario' },
+  { label: 'Leve', value: 'leve' },
+  { label: 'Moderado', value: 'moderado' },
+  { label: 'Intenso', value: 'intenso' },
+  { label: 'Muito Intenso', value: 'muito_intenso' },
+];
 
 let ImagePicker: any = null;
 if (Platform.OS !== 'web') {
@@ -116,6 +130,17 @@ export const ProfileScreen = () => {
     return goalMap[goal] || goal.replace('_', ' ');
   };
 
+  const formatActivityLevel = (activityLevel: string | undefined) => {
+    if (!activityLevel || activityLevel === 'nao_informado') return '—';
+    const activityMap: { [key: string]: string } = {
+      sedentario: 'Sedentário',
+      leve: 'Leve',
+      moderado: 'Moderado',
+      intenso: 'Intenso',
+      muito_intenso: 'Muito Intenso',
+    };
+    return activityMap[activityLevel] || activityLevel.replace('_', ' ');
+  };
   const handleSecurity = () => setShowSecurityDetails(prev => !prev);
   const handleHelpSupport = () => setShowHelpSupportDetails(prev => !prev);
   const handleNotifications = () => setShowNotificationPreferences(prev => !prev);
@@ -137,6 +162,7 @@ export const ProfileScreen = () => {
           weight: parseFloat(editData.weight) || 0,
           goal: editData.goal,
           gender: editData.sex,
+          activity_level: editData.activityLevel,
         }).eq('id', user.id);
       }
 
@@ -148,11 +174,11 @@ export const ProfileScreen = () => {
         heightCm: parseFloat(editData.height) || userProfile?.heightCm || 0,
         goal: editData.goal || userProfile?.goal || 'Vida saudável',
         sex: editData.sex || userProfile?.sex || 'Feminino',
-        activityLevel: editData.activityLevel || userProfile?.activityLevel || 'Moderado',
+        activityLevel: editData.activityLevel || userProfile?.activityLevel || 'nao_informado',
       });
 
       setEditingProfile(false);
-      Alert.alert('✅ Perfil atualizado', 'Seus dados foram salvos com sucesso.');
+      Alert.alert('Perfil atualizado', 'Seus dados foram salvos com sucesso.');
     } catch (e: any) {
       Alert.alert('Erro', 'Não foi possível salvar o perfil: ' + e.message);
     }
@@ -216,7 +242,7 @@ export const ProfileScreen = () => {
             <View style={styles.metricsContainer}>
               <MetricRow label="IMC" value={`${healthSummary?.bmi || '—'} (${healthSummary?.bmiLabel || '—'})`} />
               <View style={styles.metricDivider} />
-              {/* ✅ CORRIGIDO: sem fallback hardcoded */}
+              {/* CORRIGIDO: sem fallback hardcoded */}
               <MetricRow label="Peso Atual" value={userProfile?.weightKg ? `${userProfile.weightKg} kg` : '—'} />
               <View style={styles.metricDivider} />
               <MetricRow label="Altura" value={userProfile?.heightCm ? `${userProfile.heightCm} cm` : '—'} />
@@ -226,6 +252,8 @@ export const ProfileScreen = () => {
               <MetricRow label="Objetivo" value={formatGoal(userProfile?.goal)} />
               <View style={styles.metricDivider} />
               <MetricRow label="Gênero" value={userProfile?.sex || '—'} />
+              <View style={styles.metricDivider} />
+              <MetricRow label="Nível de atividade" value={formatActivityLevel(userProfile?.activityLevel)} />
             </View>
           </PremiumCard>
 
@@ -287,11 +315,34 @@ export const ProfileScreen = () => {
                 <AppInput value={editData.age} onValueChange={(value: string) => setEditData(prev => ({ ...prev, age: value }))} label="Idade" keyboardType="numeric" />
                 <AppInput value={editData.height} onValueChange={(value: string) => setEditData(prev => ({ ...prev, height: value }))} label="Altura (cm)" keyboardType="numeric" />
                 <AppInput value={editData.weight} onValueChange={(value: string) => setEditData(prev => ({ ...prev, weight: value }))} label="Peso (kg)" keyboardType="numeric" />
-                <AppInput value={editData.goal} onValueChange={(value: string) => setEditData(prev => ({ ...prev, goal: value }))} label="Objetivo" />
-                <AppInput value={editData.activityLevel} onValueChange={(value: string) => setEditData(prev => ({ ...prev, activityLevel: value }))} label="Nível de atividade" />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
-                  <PrimaryButton text="Salvar" onClick={handleSaveProfile} />
-                  <SecondaryButton text="Cancelar" onClick={handleCancelEdit} />
+                <View>
+                  <Text style={styles.inputGroupLabel}>Objetivo</Text>
+                  <View style={styles.editChipRow}>
+                    {GOAL_OPTIONS.map(option => (
+                      <SelectChip
+                        key={option.value}
+                        label={option.label}
+                        selected={editData.goal === option.value}
+                        onClick={() => setEditData(prev => ({ ...prev, goal: option.value }))}
+                      />
+                    ))}
+                  </View>
+                </View>                <View>
+                  <Text style={styles.inputGroupLabel}>Nível de atividade</Text>
+                  <View style={styles.editChipRow}>
+                    {ACTIVITY_LEVEL_OPTIONS.map(option => (
+                      <SelectChip
+                        key={option.value}
+                        label={option.label}
+                        selected={editData.activityLevel === option.value}
+                        onClick={() => setEditData(prev => ({ ...prev, activityLevel: option.value }))}
+                      />
+                    ))}
+                  </View>
+                </View>
+                <View style={styles.formActions}>
+                  <PrimaryButton text="Salvar" onClick={handleSaveProfile} style={styles.formButton} />
+                  <SecondaryButton text="Cancelar" onClick={handleCancelEdit} style={styles.formButton} />
                 </View>
               </View>
             </CollapsibleSetting>
@@ -481,4 +532,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-});
+  inputGroupLabel: {
+    fontSize: 13,
+    color: COLORS.TextVariant,
+    marginBottom: 8,
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+  editChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 4,
+  },
+  formActions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  formButton: {
+    flex: 1,
+    marginTop: 0,
+  },});
+
+
+
+
+
+
+
+
