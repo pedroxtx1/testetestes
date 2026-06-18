@@ -42,7 +42,7 @@ export const SignUpScreen = ({ onSignUpComplete, onCancel }: {
   const animateButton = (animatedValue: Animated.Value, toValue: number) => {
     Animated.spring(animatedValue, {
       toValue,
-      useNativeDriver: true,
+      useNativeDriver: false,
       speed: 20,
       bounciness: 10,
     }).start();
@@ -124,7 +124,7 @@ export const SignUpScreen = ({ onSignUpComplete, onCancel }: {
 
   return (
     <LinearGradient colors={['#E8F5E9', '#F9FAF9']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <SafeAreaView edges={['top']}>
           <View style={styles.header}>
             <Animated.View style={{ transform: [{ scale: closeScale }] }}>

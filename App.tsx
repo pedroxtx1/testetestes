@@ -67,7 +67,6 @@ const LoginScreen = () => {
     setIsLoading(true);
     try {
       await login(email, password);
-      // Não precisa fazer nada aqui — o onAuthStateChange no App vai redirecionar
     } catch (e: any) {
       console.error('Erro no login:', e);
       if (e.message?.includes('Email not confirmed')) {
@@ -99,11 +98,9 @@ const LoginScreen = () => {
     return (
       <SignUpScreen
         onSignUpComplete={async (signUpEmail: string, signUpPassword: string) => {
-          // Após cadastro, tenta fazer login automaticamente
           setIsLoading(true);
           try {
             await login(signUpEmail, signUpPassword);
-            // Se login OK, o onAuthStateChange redireciona automaticamente
           } catch (e: any) {
             console.log('Login pós-cadastro falhou (provável confirmação de e-mail):', e.message);
             if (e.message?.includes('Email not confirmed')) {
@@ -235,14 +232,12 @@ export default function App() {
       }
     };
 
-    // Garante que a sessão salva seja lida ao abrir o app.
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session?.user) {
         void syncSession(data.session);
       }
     });
 
-    // Listener principal de autenticação — sem await direto para evitar travamentos.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('onAuthStateChange evento:', event, 'session:', !!session);
 
@@ -341,6 +336,3 @@ const styles = StyleSheet.create({
   avatarBadge: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: 'white', fontSize: 22, fontWeight: 'bold' }
 });
-
-
-//funcionapfvr//

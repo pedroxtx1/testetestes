@@ -103,7 +103,7 @@ export const LoadingButton = ({ text, onClick, isLoading = false }: { text: stri
         Animated.timing(spinValue, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver: false,
         })
       );
       animation.current.start();
@@ -259,9 +259,9 @@ export const PageSlide = ({ children, tabIndex }: { children: React.ReactNode; t
         scaleAnim.setValue(0.98);
         opacityAnim.setValue(0);
         Animated.parallel([
-          Animated.timing(slideAnim, { toValue: 0, duration: 360, useNativeDriver: true }),
-          Animated.timing(scaleAnim, { toValue: 1, duration: 360, useNativeDriver: true }),
-          Animated.timing(opacityAnim, { toValue: 1, duration: 360, useNativeDriver: true }),
+          Animated.timing(slideAnim, { toValue: 0, duration: 360, useNativeDriver: false }),
+          Animated.timing(scaleAnim, { toValue: 1, duration: 360, useNativeDriver: false }),
+          Animated.timing(opacityAnim, { toValue: 1, duration: 360, useNativeDriver: false }),
         ]).start(() => {
           try { setEnteringFromLogin(false); } catch (e) {}
         });
@@ -269,7 +269,7 @@ export const PageSlide = ({ children, tabIndex }: { children: React.ReactNode; t
 
       if (isOutgoing && !isFocused) {
         exitAnim.setValue(0);
-        Animated.timing(exitAnim, { toValue: 1, duration: 360, useNativeDriver: true }).start();
+        Animated.timing(exitAnim, { toValue: 1, duration: 360, useNativeDriver: false }).start();
       } else {
         exitAnim.setValue(0);
       }
@@ -279,8 +279,8 @@ export const PageSlide = ({ children, tabIndex }: { children: React.ReactNode; t
           scaleAnim.setValue(0.92);
           opacityAnim.setValue(0);
           Animated.parallel([
-            Animated.timing(scaleAnim, { toValue: 1, duration: 420, useNativeDriver: true }),
-            Animated.timing(opacityAnim, { toValue: 1, duration: 420, useNativeDriver: true }),
+            Animated.timing(scaleAnim, { toValue: 1, duration: 420, useNativeDriver: false }),
+            Animated.timing(opacityAnim, { toValue: 1, duration: 420, useNativeDriver: false }),
           ]).start(() => {
             try { setEnteringFromLogin(false); } catch (e) {}
           });
@@ -291,7 +291,7 @@ export const PageSlide = ({ children, tabIndex }: { children: React.ReactNode; t
           Animated.timing(slideAnim, {
             toValue: 0,
             duration: 350,
-            useNativeDriver: true,
+            useNativeDriver: false,
           }).start();
         }
       }

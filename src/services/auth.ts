@@ -86,18 +86,20 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signInWithGoogle() {
-  const redirectUrl = AuthSession.makeRedirectUri();
+  const redirectUrl = AuthSession.makeRedirectUri({ scheme: undefined });
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: redirectUrl,
+      skipBrowserRedirect: false,
     },
   });
 
   if (error) throw error;
   return data;
 }
+
 
 export async function resetPassword(email: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {

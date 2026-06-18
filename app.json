@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "saudemais-app",
-    "slug": "saudemais-app",
-    "version": "1.0.0",
+    "name": "MaisSaúde",
+    "slug": "mais-saude",
+    "version": "1.0.1",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,19 +17,22 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.codebylc.saudemaisapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font"
     ],
     "extra": {
       "eas": {
-        "projectId": "1b0c2070-b1db-4db7-924f-5bbe7ff7dc5c"
+        "projectId": "6ac70d5e-8a98-4d06-a7c7-2be8881ba1bb"
       }
     },
-    "owner": "codebylc"
+    "owner": "codebylc",
+    "scheme": "saudemais"
   }
 }

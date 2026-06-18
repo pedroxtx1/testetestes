@@ -33,7 +33,7 @@ export const CollapsibleSetting: React.FC<CollapsibleSettingProps> = ({
         Animated.timing(animatedOpacity, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ]).start();
     } else {
@@ -46,7 +46,7 @@ export const CollapsibleSetting: React.FC<CollapsibleSettingProps> = ({
         Animated.timing(animatedOpacity, {
           toValue: 0,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ]).start();
     }

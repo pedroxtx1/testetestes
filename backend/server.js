@@ -5,6 +5,9 @@ import axios from "axios";
 
 import { createClient } from '@supabase/supabase-js'
 
+// Carrega variáveis de ambiente antes de acessar process.env.
+dotenv.config();
+
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
@@ -14,9 +17,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 const supabase = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey) : null
 
-dotenv.config();
-
 const app = express();
+
+// Validação explícita para evitar 401/erros “cripticos” vindos da API externa.
+const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+if (!openRouterApiKey) {
+  console.warn('OPENROUTER_API_KEY não configurada no ambiente. As requisições para IA vão falhar.');
+}
 
 app.use(cors());
 app.use(express.json());
@@ -82,15 +89,30 @@ Responda de forma amigável, humana e útil.
       { role: "user", content: message },
     ];
 
+    // Log mascarado para debug de autenticação (não revela a chave inteira).
+    const maskedKey = openRouterApiKey.length <= 10
+      ? "***"
+      : `${openRouterApiKey.slice(0, 5)}***${openRouterApiKey.slice(-4)}`;
+    console.log("OPENROUTER_API_KEY (mascarada):", maskedKey);
+
+    if (!openRouterApiKey) {
+      return res.status(500).json({
+        error: "OPENROUTER_API_KEY não configurada no ambiente.",
+      });
+    }
+
+    // Nota: modelo pode impactar respostas 4xx dependendo da conta/permissão.
+    const model = process.env.OPENROUTER_MODEL || "openai/gpt-3.5-turbo";
+
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "openai/gpt-3.5-turbo",
+        model,
         messages: payloadMessages,
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${openRouterApiKey}`,
           "Content-Type": "application/json",
         },
       }

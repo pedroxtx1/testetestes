@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Switch, Alert, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +17,7 @@ export const ProfileScreen = () => {
   const { userProfile, healthSummary, logout } = useAppStore();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [isEditingPhoto, setIsEditingPhoto] = useState(false);
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showNotificationPreferences, setShowNotificationPreferences] = useState(false);
   const [showSecurityDetails, setShowSecurityDetails] = useState(false);
@@ -50,10 +51,28 @@ export const ProfileScreen = () => {
   }, [userProfile]);
 
   const handlePickImage = async () => {
-    if (Platform.OS === 'web' || !ImagePicker) {
-      alert('Seleção de imagem não está disponível na web');
+    if (Platform.OS === 'web') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        setProfilePhoto(url);
+        setIsEditingPhoto(false);
+      };
+      input.click();
       return;
     }
+
+    if (!ImagePicker) {
+      alert('ImagePicker não disponível no projeto.');
+      return;
+    }
+
+
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -152,7 +171,11 @@ export const ProfileScreen = () => {
           >
             <View style={styles.profilePhotoContainer}>
               <View style={styles.profilePhoto}>
-                <Text style={styles.profilePhotoInitials}>{getInitials()}</Text>
+                {profilePhoto ? (
+                  <Image source={{ uri: profilePhoto }} style={styles.profilePhotoImage} />
+                ) : (
+                  <Text style={styles.profilePhotoInitials}>{getInitials()}</Text>
+                )}
               </View>
               <TouchableOpacity
                 style={styles.editPhotoButton}
@@ -325,6 +348,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: 'white',
+  },
+  profilePhotoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   profilePhotoInitials: {
     fontSize: 48,
